@@ -11,6 +11,9 @@
     "ios": {
       "supportsTablet": true
     },
+    "extra": {
+      "EXPO_PUBLIC_GOOGLE_AI_KEY": "AIzaSyA-pp_w-JQZwOTzAhQdwHbHVZKiEBVBZH4"
+    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -20,7 +23,10 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": ["READ_PHONE_STATE", "CALL_PHONE"]
+      "permissions": [
+        "READ_PHONE_STATE",
+        "CALL_PHONE"
+      ]
     },
     "web": {
       "output": "static",

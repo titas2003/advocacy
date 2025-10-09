@@ -21,7 +21,7 @@ export default function home() {
   const tiles = [
     { title: 'Upcoming Appointments', icon: require('../../assets/logos/schedule.png'), action: () => router.push('/appointments') },
     { title: 'Book an Appointment', icon: require('../../assets/logos/appointment.png'), action: () => router.push('/book-appointment') },
-    { title: 'Get Legal Advice', icon: require('../../assets/logos/attorney.png'), action: () => router.push('/legal-advice') },
+    { title: 'Get Legal Advice', icon: require('../../assets/logos/attorney.png'), action: () => router.push('/get-legal-advice') },
     { title: 'Post Your Query', icon: require('../../assets/logos/history.png'), action: () => router.push('/post-query') },
     { title: 'Profile', icon: require('../../assets/logos/profile-candidate.png'), action: () => router.push('/profile') },
     { title: 'SOS', icon: require('../../assets/logos/alarm.png'), action: () => router.push('/SOS') },
