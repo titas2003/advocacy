@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,8 +12,6 @@ import {
   View,
 } from 'react-native';
 import Markdown from 'react-native-markdown-display';
-
-import Constants from 'expo-constants';
 
 const apiKey = Constants.expoConfig.extra.EXPO_PUBLIC_GOOGLE_AI_KEY;
 
@@ -29,7 +28,7 @@ export default function GetLegalAdviceScreen() {
     setMessages(updatedMessages);
 
     try {
-      // ✅ Use v1 endpoint + gemini-1.5-flash
+      // ✅ Use v1 endpoint + gemini-2.0-flash
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
@@ -87,9 +86,9 @@ export default function GetLegalAdviceScreen() {
         </View>
       </View>
 
-      {/* Chat Section */}
-      <ScrollView contentContainerStyle={styles.chatContainer}>
-        {messages.map((msg, index) => (
+      {/* Chat Section: New messages on top */}
+      <ScrollView contentContainerStyle={[styles.chatContainer, { flexDirection: 'column-reverse' }]}>
+        {messages.slice().reverse().map((msg, index) => (
           <View
             key={index}
             style={[
