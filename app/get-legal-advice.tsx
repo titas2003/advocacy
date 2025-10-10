@@ -1,15 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 
@@ -19,16 +20,17 @@ export default function GetLegalAdviceScreen() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
 
   const askGoogleAI = async () => {
     if (!query.trim()) return;
     setLoading(true);
 
-    const updatedMessages = [...messages, { role: 'user', text: query }];
-    setMessages(updatedMessages);
+    // Prepend user's query
+    setMessages(prev => [{ role: 'user', text: query }, ...prev]);
 
     try {
-      // ✅ Use v1 endpoint + gemini-2.0-flash
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
@@ -51,17 +53,27 @@ export default function GetLegalAdviceScreen() {
         data?.candidates?.[0]?.content?.parts?.[0]?.text ||
         'Sorry, I could not find a suitable answer.';
 
-      setMessages([...updatedMessages, { role: 'ai', text: aiText }]);
+      setMessages(prev => [{ role: 'ai', text: aiText }, ...prev]);
     } catch (error) {
       console.error('❌ Error fetching from Google AI:', error);
-      setMessages([
-        ...updatedMessages,
+      setMessages(prev => [
         { role: 'ai', text: '❌ There was an error fetching legal advice.' },
+        ...prev,
       ]);
     } finally {
       setLoading(false);
       setQuery('');
     }
+  };
+
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    // When user scrolls away from the top, show the button
+    setShowScrollTop(offsetY < -50 ? true : false);
+  };
+
+  const scrollToTop = () => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   return (
@@ -86,24 +98,37 @@ export default function GetLegalAdviceScreen() {
         </View>
       </View>
 
-      {/* Chat Section: New messages on top */}
-      <ScrollView contentContainerStyle={[styles.chatContainer, { flexDirection: 'column-reverse' }]}>
-        {messages.slice().reverse().map((msg, index) => (
+      {/* Chat Section */}
+      <FlatList
+        ref={flatListRef}
+        data={messages}
+        inverted
+        keyExtractor={(_, index) => index.toString()}
+        contentContainerStyle={styles.chatContainer}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        renderItem={({ item }) => (
           <View
-            key={index}
             style={[
               styles.messageBubble,
-              msg.role === 'user' ? styles.userBubble : styles.aiBubble,
+              item.role === 'user' ? styles.userBubble : styles.aiBubble,
             ]}
           >
-            {msg.role === 'ai' ? (
-              <Markdown>{msg.text}</Markdown>
+            {item.role === 'ai' ? (
+              <Markdown>{item.text}</Markdown>
             ) : (
-              <Text style={styles.userText}>{msg.text}</Text>
+              <Text style={styles.userText}>{item.text}</Text>
             )}
           </View>
-        ))}
-      </ScrollView>
+        )}
+      />
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
+          <Ionicons name="arrow-up" size={22} color="#fff" />
+        </TouchableOpacity>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -152,7 +177,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   chatContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
   messageBubble: {
     marginBottom: 10,
@@ -170,5 +197,20 @@ const styles = StyleSheet.create({
   },
   userText: {
     color: '#fff',
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    backgroundColor: '#2563eb',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
