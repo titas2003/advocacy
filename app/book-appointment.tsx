@@ -1,16 +1,16 @@
 import DateTimePicker, {
-    DateTimePickerAndroid,
+  DateTimePickerAndroid,
 } from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export default function BookAppointmentScreen() {
@@ -120,7 +120,7 @@ export default function BookAppointmentScreen() {
           start={[0, 0]}
           end={[1, 0]}
         >
-          <Text style={styles.buttonText}>Book Now</Text>
+          <Text style={styles.buttonText}>Check Availability</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
