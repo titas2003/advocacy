@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   StyleSheet,
@@ -11,11 +12,19 @@ import {
 } from 'react-native';
 
 import { useGoogleAuth } from '../utils/googleAuth';
+import apiClient from '../utils/apiClient';
+import { useAuth } from '../context/AuthContext';
 
-const BACKEND_URL = 'http://192.168.0.178:3000';
+const BACKEND_URL = 'http://localhost:5006';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useAuth();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   /* ---------- Google Auth Hook ---------- */
   const { request, response, promptAsync } = useGoogleAuth();
@@ -37,7 +46,7 @@ export default function LoginScreen() {
   /* ---------- Send token to backend ---------- */
   const googleLoginToBackend = async (idToken: string) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/auth/google`, {
+      const res = await fetch(`${BACKEND_URL}/api/user/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken }),
@@ -49,7 +58,7 @@ export default function LoginScreen() {
         throw new Error(data.message || 'Google login failed');
       }
 
-      // TODO: store JWT securely (SecureStore)
+      await login(data.token, data.user);
       router.replace('/(tabs)/home');
     } catch (err: any) {
       Alert.alert('Authentication Error', err.message);
@@ -62,8 +71,23 @@ export default function LoginScreen() {
     await promptAsync({ useProxy: true });
   };
 
-  const handleLogin = () => {
-    router.replace('/(tabs)/home');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMsg('Please enter email and password');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const res = await apiClient.post('/user/login', { identifier: email, password });
+      await login(res.data.token, res.data.user);
+      router.replace('/(tabs)/home');
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignup = () => {
@@ -83,20 +107,29 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
 
+      {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
+
       <TextInput
-        placeholder="Email"
+        placeholder="Email, Client ID, PAN, or Aadhar"
         style={styles.input}
-        keyboardType="email-address"
         autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         placeholder="Password"
         style={styles.input}
         secureTextEntry
+        value={password}
+        onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Login</Text>
+        )}
       </TouchableOpacity>
 
       <Text style={styles.orText}>OR</Text>
@@ -178,6 +211,10 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     color: '#444',
     fontWeight: '600',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
   socialButton: {
     flexDirection: 'row',

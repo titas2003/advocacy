@@ -1,11 +1,24 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Alert, Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '../utils/apiClient';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const scaleAnim = useRef(new Animated.Value(0)).current;
+
+  // Fetch full profile from backend
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const response = await apiClient.get('/user/profile');
+      return response.data.data;
+    },
+  });
 
   useEffect(() => {
     Animated.spring(scaleAnim, {
@@ -25,14 +38,22 @@ export default function ProfileScreen() {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: () => {
-            // TODO: clear authentication/token if implemented
+          onPress: async () => {
+            await logout();
             router.replace('/login');
           },
         },
       ]
     );
   };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0077ff" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -45,12 +66,12 @@ export default function ProfileScreen() {
       >
         <Animated.View style={[styles.avatarContainer, { transform: [{ scale: scaleAnim }] }]}>
           <Image
-            source={{ uri: 'https://i.pravatar.cc/200' }}
+            source={{ uri: profile?.avatar || 'https://i.pravatar.cc/200' }}
             style={styles.avatar}
           />
         </Animated.View>
-        <Text style={styles.name}>Titas Majumder</Text>
-        <Text style={styles.email}>titas@example.com</Text>
+        <Text style={styles.name}>{profile?.name || user?.name}</Text>
+        <Text style={styles.email}>{profile?.email || user?.email}</Text>
       </LinearGradient>
 
       {/* Profile Info */}
@@ -61,17 +82,22 @@ export default function ProfileScreen() {
 
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>📞 Phone</Text>
-          <Text style={styles.infoValue}>+91 98765 43210</Text>
+          <Text style={styles.infoValue}>{profile?.phone || 'Not provided'}</Text>
         </View>
 
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>🏠 Address</Text>
-          <Text style={styles.infoValue}>Kolkata, West Bengal, India</Text>
+          <Text style={styles.infoValue}>{profile?.location?.city || 'Not provided'}</Text>
         </View>
 
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>💼 Profession</Text>
-          <Text style={styles.infoValue}>Legal Consultant</Text>
+          <Text style={styles.infoLabel}>💼 Role</Text>
+          <Text style={styles.infoValue}>{profile?.role || 'Client'}</Text>
+        </View>
+        
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>🛡️ Verification Status</Text>
+          <Text style={styles.infoValue}>{profile?.verificationStatus || 'Pending'}</Text>
         </View>
       </View>
 

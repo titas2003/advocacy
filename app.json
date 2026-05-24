@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.advocacy"
     },
     "extra": {
       "EXPO_PUBLIC_GOOGLE_AI_KEY": "AIzaSyCnt60egNNGjvyIV6sdc-470tyDkcbRPEU",

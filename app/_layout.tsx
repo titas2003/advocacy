@@ -3,6 +3,10 @@ import * as Location from 'expo-location';
 import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Animated, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '../context/AuthContext';
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const [showPermissionModal, setShowPermissionModal] = useState(true);
@@ -43,36 +47,38 @@ export default function RootLayout() {
   };
 
   return (
-    <>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="about" options={{ title: 'About' }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="about" options={{ title: 'About' }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        </Stack>
 
-      {/* 🌟 Permission Modal */}
-      <Modal visible={showPermissionModal} animationType="fade" transparent>
-        <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-          <View style={styles.modalBox}>
-            <Text style={styles.title}>📌 Permissions Required</Text>
-            <Text style={styles.subtitle}>
-              To give you the best experience, we need access to:
-            </Text>
+        {/* 🌟 Permission Modal */}
+        <Modal visible={showPermissionModal} animationType="fade" transparent>
+          <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
+            <View style={styles.modalBox}>
+              <Text style={styles.title}>📌 Permissions Required</Text>
+              <Text style={styles.subtitle}>
+                To give you the best experience, we need access to:
+              </Text>
 
-            <View style={styles.list}>
-              <Text style={styles.listItem}>📍 Location — to show nearby advocates</Text>
-              <Text style={styles.listItem}>👥 Contacts — to help connect easily</Text>
-              <Text style={styles.listItem}>📞 Phone (Android) — for appointment calls</Text>
+              <View style={styles.list}>
+                <Text style={styles.listItem}>📍 Location — to show nearby advocates</Text>
+                <Text style={styles.listItem}>👥 Contacts — to help connect easily</Text>
+                <Text style={styles.listItem}>📞 Phone (Android) — for appointment calls</Text>
+              </View>
+
+              <TouchableOpacity style={styles.button} onPress={handleGrantPermissions}>
+                <Text style={styles.buttonText}>Grant Permissions</Text>
+              </TouchableOpacity>
             </View>
-
-            <TouchableOpacity style={styles.button} onPress={handleGrantPermissions}>
-              <Text style={styles.buttonText}>Grant Permissions</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      </Modal>
-    </>
+          </Animated.View>
+        </Modal>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
