@@ -12,7 +12,7 @@ import {
   View,
   ScrollView,
 } from 'react-native';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../utils/apiClient';
 
 interface Category {
@@ -94,6 +94,7 @@ export default function BookAppointmentScreen() {
   }, [advocates, selectedCourt, selectedSpecialty]);
 
   // Mutation to book appointment
+  const queryClient = useQueryClient();
   const bookMutation = useMutation({
     mutationFn: async (payload: any) => {
       const response = await apiClient.post('/user/appointments', payload);
@@ -104,6 +105,8 @@ export default function BookAppointmentScreen() {
       setSelectedAdvocate('');
       setSelectedSlot('');
       setNotes('');
+      // Invalidate appointments so the Upcoming list refreshes
+      queryClient.invalidateQueries({ queryKey: ['appointments'] });
     },
     onError: (error: any) => {
       Alert.alert('Error', error.response?.data?.message || 'Failed to book appointment');

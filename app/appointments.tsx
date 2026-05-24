@@ -35,10 +35,10 @@ export default function AppointmentsScreen() {
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.card}>
       <Text style={styles.advName}>Advocate: {item.advocateId?.name || 'Unknown'}</Text>
-      <Text style={styles.date}>Date: {new Date(item.date).toLocaleString()}</Text>
-      <Text style={styles.mode}>Mode: {item.mode}</Text>
-      <Text style={[styles.status, { color: item.status === 'Confirmed' ? '#22c55e' : item.status === 'Cancelled' ? '#ef4444' : '#f59e0b' }]}>
-        Status: {item.status}
+      <Text style={styles.date}>Date: {new Date(item.scheduledAt).toLocaleString()}</Text>
+      <Text style={styles.mode}>Mode: {item.mode || 'Online'}</Text>
+      <Text style={[styles.status, { color: item.status === 'accepted' ? '#22c55e' : item.status === 'cancelled' ? '#ef4444' : '#f59e0b' }]}>
+        Status: {item.status.toUpperCase()}
       </Text>
       {item.paymentStatus && <Text style={styles.payment}>Payment: {item.paymentStatus}</Text>}
     </View>
